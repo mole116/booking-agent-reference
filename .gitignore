@@ -1,0 +1,9 @@
+.env
+.DS_Store
+node_modules/
+dist/
+logs/
+evals/results.json
+database.eval-backup.json
+client/node_modules/
+client/dist/

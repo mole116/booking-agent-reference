@@ -1,0 +1,263 @@
+.bookings-panel {
+  background: #fff;
+  border-radius: 20px;
+  border: 1px solid #e2e8e0;
+  box-shadow: 0 4px 24px rgba(30, 58, 36, 0.07);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  // Fill the right column height so the panel itself never scrolls
+  height: calc(100vh - 60px - 80px);
+  min-height: 0;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.panel-title {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1a3a22;
+  margin: 0;
+}
+
+.refresh-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #4a7c59;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.15s;
+
+  &:hover { opacity: 0.7; }
+  &:disabled { opacity: 0.35; cursor: not-allowed; }
+  &:focus-visible { outline: 2px solid #a8e063; }
+}
+
+.state-msg {
+  font-size: 0.85rem;
+  color: #9aada0;
+  text-align: center;
+  padding: 12px 0;
+
+  &--error { color: #c0392b; }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 16px;
+  color: #9aada0;
+  text-align: center;
+
+  p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+}
+
+.booking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: #d0d8d2; border-radius: 4px; }
+}
+
+.booking-card {
+  border: 1px solid #e2e8e0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: #fafaf8;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+  // max-height large enough to cover any card height
+  max-height: 400px;
+  overflow: hidden;
+  transition:
+    box-shadow 0.15s,
+    opacity 0.38s ease,
+    max-height 0.38s ease,
+    padding 0.38s ease,
+    margin 0.38s ease;
+
+  &:hover { box-shadow: 0 2px 12px rgba(30,58,36,0.08); }
+}
+
+// Phase 1: grey out + show Cancelled badge
+.booking-card--cancelled {
+  background: #f4f4f2;
+  border-color: #ddddd8;
+  opacity: 0.55;
+  pointer-events: none;
+
+  .booking-name {
+    color: #8a9490;
+  }
+}
+
+// Phase 2: collapse height and fully fade
+.booking-card--collapsing {
+  max-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  opacity: 0 !important;
+  border-width: 0 !important;
+}
+
+.booking-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.booking-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #1a3a22;
+  transition: color 0.32s ease;
+}
+
+.status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #d4f0b4;
+  color: #2a6030;
+  padding: 3px 10px;
+  border-radius: 999px;
+
+  &--cancelled {
+    background: #e8e8e4;
+    color: #7a7a72;
+  }
+}
+
+.booking-card__details {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.82rem;
+  color: #4a6052;
+
+  svg { flex-shrink: 0; opacity: 0.65; }
+}
+
+.booking-card__id {
+  font-size: 0.7rem;
+  color: #b0bdb5;
+  font-family: 'Courier New', monospace;
+  word-break: break-all;
+}
+
+.booking-card__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.card-btn {
+  flex: 1;
+  padding: 7px 0;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  letter-spacing: 0.02em;
+
+  &:focus-visible { outline: 2px solid #a8e063; }
+  &:hover:not(:disabled) { opacity: 0.82; }
+  &:disabled { opacity: 0.38; cursor: not-allowed; }
+
+  &--edit {
+    background: #e8f3ec;
+    color: #1a3a22;
+  }
+
+  &--cancel {
+    background: #fdeaea;
+    color: #c0392b;
+  }
+}
+
+// Agent-offline notice bar
+.agent-offline-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff8e6;
+  border: 1px solid #f0d080;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 0.78rem;
+  color: #7a5c00;
+  font-weight: 500;
+
+  svg { flex-shrink: 0; color: #c8960a; }
+}
+
+// Booking card in confirming state
+.booking-card--confirming {
+  border-color: #f0b8b8;
+  background: #fffafa;
+}
+
+// Inline cancel confirmation block
+.confirm-cancel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.confirm-cancel__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #c0392b;
+  margin: 0;
+}
+
+.confirm-cancel__details {
+  font-size: 0.82rem;
+  color: #4a6052;
+}
+
+.confirm-cancel__error {
+  font-size: 0.78rem;
+  color: #c0392b;
+  margin: 0;
+}
+
+.confirm-cancel__actions {
+  display: flex;
+  gap: 8px;
+}

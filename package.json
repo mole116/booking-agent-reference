@@ -1,0 +1,37 @@
+{
+  "name": "daisy-reservation-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "npm install && cd client && npm install",
+    "start:server": "tsx server.ts",
+    "start:agent": "tsx agent-server.ts",
+    "start:client": "cd client && bash -c 'source ~/.nvm/nvm.sh && nvm use 22.22.3 && ng serve'",
+    "start": "concurrently --names SERVER,AGENT,CLIENT --prefix-colors green,yellow,cyan \"npm run start:server\" \"npm run start:agent\" \"npm run start:client\"",
+    "start:cli": "tsx cli.ts",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "eval": "tsx evals/run.ts",
+    "eval:case": "tsx evals/run.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ai-sdk/anthropic": "^4.0.36",
+    "ai": "^7.0.58",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.2.0",
+    "concurrently": "^9.0.0",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.11",
+    "typescript": "^7.0.2"
+  },
+  "type": "module"
+}

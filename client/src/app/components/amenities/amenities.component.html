@@ -1,0 +1,29 @@
+<div class="amenities-panel">
+  <div class="panel-header">
+    <h2 class="panel-title">Amenities</h2>
+  </div>
+
+  <div class="amenity-grid">
+    @if (loading()) {
+      <div class="state-msg">Loading…</div>
+    } @else {
+      @for (a of amenities(); track a.id) {
+        <div class="amenity-card">
+          <div class="amenity-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path [attr.d]="iconPath(a.id)"></path>
+            </svg>
+          </div>
+          <div class="amenity-info">
+            <span class="amenity-name">{{ a.name }}</span>
+            <span class="amenity-cap">Up to {{ a.capacity }}</span>
+            @if (a.ageRestricted) {
+              <span class="age-badge">21+</span>
+            }
+          </div>
+          <button class="book-btn" (click)="onBook(a)">Book</button>
+        </div>
+      }
+    }
+  </div>
+</div>

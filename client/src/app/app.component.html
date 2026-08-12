@@ -1,0 +1,39 @@
+<header class="site-header">
+  <div class="header-inner">
+    <div class="wordmark">
+      <span class="wordmark__icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path
+            d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" />
+        </svg>
+      </span>
+      <span class="wordmark__text">Daisy Reservations</span>
+    </div>
+    <span class="header-badge">Resident Portal</span>
+  </div>
+</header>
+
+<main class="dashboard">
+  <div class="dashboard-inner" [class.agent-offline]="!agentAvailable()">
+
+    <!-- Left: amenities (hidden when agent is offline) -->
+    @if (agentAvailable()) {
+      <aside class="left-column">
+        <app-amenities />
+      </aside>
+    }
+
+    <!-- Center: chat -->
+    <div class="chat-column">
+      <app-chat />
+    </div>
+
+    <!-- Right: bookings -->
+    <aside class="right-column">
+      <app-bookings />
+    </aside>
+
+  </div>
+</main>

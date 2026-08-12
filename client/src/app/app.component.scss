@@ -1,0 +1,130 @@
+// ─── Header ─────────────────────────────────────────────────────────────────
+
+.site-header {
+  background: #1a3a22;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 28px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wordmark__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(168, 224, 99, 0.15);
+  color: #a8e063;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wordmark__text {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #f5f0e8;
+  letter-spacing: 0.01em;
+}
+
+.header-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 232, 0.45);
+}
+
+// ─── Dashboard layout ────────────────────────────────────────────────────────
+
+.dashboard {
+  background: #f0ede6;
+  min-height: calc(100vh - 60px);
+  padding: 32px 24px 48px;
+}
+
+.dashboard-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  display: grid;
+  // amenities | chat (main focus) | bookings
+  grid-template-columns: 300px 1fr 300px;
+  grid-template-areas: "left center right";
+  gap: 20px;
+  align-items: start;
+
+  // When agent is offline, amenities column is gone — chat + bookings only
+  &.agent-offline {
+    grid-template-columns: 1fr 300px;
+    grid-template-areas: "center right";
+  }
+}
+
+.left-column {
+  grid-area: left;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.chat-column {
+  grid-area: center;
+  height: calc(100vh - 60px - 80px);
+  min-height: 480px;
+}
+
+.right-column {
+  grid-area: right;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ─── Responsive ──────────────────────────────────────────────────────────────
+
+@media (max-width: 1100px) {
+  .dashboard-inner {
+    grid-template-columns: 260px 1fr 260px;
+  }
+
+  .dashboard-inner.agent-offline {
+    grid-template-columns: 1fr 260px;
+  }
+}
+
+@media (max-width: 800px) {
+  .dashboard-inner,
+  .dashboard-inner.agent-offline {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "center"
+      "right"
+      "left";
+  }
+
+  .chat-column {
+    height: 520px;
+  }
+
+  .left-column,
+  .right-column {
+    max-height: none;
+    overflow-y: visible;
+  }
+}

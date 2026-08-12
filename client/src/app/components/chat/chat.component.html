@@ -1,0 +1,100 @@
+<div class="chat-card">
+  <div class="chat-header">
+    <span class="chat-title">Ask Daisy</span>
+    <span class="chat-subtitle">Your reservation assistant</span>
+    @if (!agentAvailable()) {
+      <span class="offline-badge">
+        <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="currentColor"/></svg>
+        Offline
+      </span>
+    }
+  </div>
+
+  <div class="chat-messages">
+    @for (msg of messages(); track $index; let i = $index) {
+      <div class="message" [class.message--user]="msg.role === 'user'" [class.message--assistant]="msg.role === 'assistant'">
+        @if (msg.role === 'assistant') {
+          <div class="message__avatar" [class.message__avatar--offline]="!agentAvailable()">D</div>
+        }
+        <div class="message__bubble">
+          <p class="message__text" [innerHTML]="msg.text | nl2br"></p>
+
+          <!-- Quick actions only on the first assistant message -->
+          @if (i === 0 && showQuickActions() && agentAvailable()) {
+            <div class="quick-actions">
+              @for (qa of quickActions; track qa.id) {
+                <button
+                  class="action-btn action-btn--secondary"
+                  (click)="sendMessage(qa.message)"
+                  [disabled]="isLoading()">
+                  {{ qa.label }}
+                </button>
+              }
+            </div>
+          }
+
+          <!-- Structured UI actions -->
+          @if (msg.role === 'assistant' && msg.ui && msg.ui.kind !== 'none' && !msg.actionsConsumed) {
+            <div class="ui-actions" [class]="'ui-actions--' + msg.ui.kind">
+              @for (action of msg.ui.actions; track action.id) {
+                <button
+                  class="action-btn"
+                  [class]="'action-btn--' + action.variant"
+                  (click)="clickAction(action, i)"
+                  [disabled]="inputDisabled()">
+                  {{ action.label }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Loading indicator -->
+    @if (isLoading()) {
+      <div class="message message--assistant">
+        <div class="message__avatar">D</div>
+        <div class="message__bubble message__bubble--loading">
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+          <span class="loading-label">Daisy is checking availability…</span>
+        </div>
+      </div>
+    }
+
+    <div #scrollAnchor></div>
+  </div>
+
+  <!-- Offline notice bar above input -->
+  @if (!agentAvailable()) {
+    <div class="offline-notice">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Assistant unavailable — chat is disabled. Cancel bookings from the panel on the right.
+    </div>
+  }
+
+  <div class="chat-input-area" [class.chat-input-area--disabled]="!agentAvailable()">
+    <textarea
+      class="chat-input"
+      [ngModel]="inputText()"
+      (ngModelChange)="inputText.set($event)"
+      (keydown)="onKeydown($event)"
+      [placeholder]="agentAvailable() ? 'Type a message…' : 'Assistant unavailable'"
+      rows="1"
+      [disabled]="inputDisabled()"
+      aria-label="Message Daisy">
+    </textarea>
+    <button
+      class="send-btn"
+      (click)="sendMessage()"
+      [disabled]="inputDisabled() || !inputText().trim()"
+      aria-label="Send message">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</div>
