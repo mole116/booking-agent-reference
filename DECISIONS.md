@@ -1,4 +1,4 @@
-# Daisy Amenity Reservation System — Decisions
+# Amenity Booking Agent — Decisions
 
 ## Technology choices
 

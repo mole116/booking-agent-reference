@@ -66,7 +66,7 @@ export async function runAgent(
     const result = await generateText({
       model: anthropic('claude-sonnet-4-6'),
 
-      system: `You are Daisy, a helpful and polite amenity reservation assistant.
+      system: `You are a helpful and polite amenity reservation assistant.
 
 CURRENT DATE: ${today}
 DEFAULT USER ID: ${DEFAULT_USER_ID}

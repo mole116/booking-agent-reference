@@ -1,6 +1,6 @@
 <div class="chat-card">
   <div class="chat-header">
-    <span class="chat-title">Ask Daisy</span>
+    <span class="chat-title">Ask the assistant</span>
     <span class="chat-subtitle">Your reservation assistant</span>
     @if (!agentAvailable()) {
       <span class="offline-badge">
@@ -59,7 +59,7 @@
           <span class="loading-dot"></span>
           <span class="loading-dot"></span>
           <span class="loading-dot"></span>
-          <span class="loading-label">Daisy is checking availability…</span>
+          <span class="loading-label">Checking availability…</span>
         </div>
       </div>
     }
@@ -84,7 +84,7 @@
       [placeholder]="agentAvailable() ? 'Type a message…' : 'Assistant unavailable'"
       rows="1"
       [disabled]="inputDisabled()"
-      aria-label="Message Daisy">
+      aria-label="Message the assistant">
     </textarea>
     <button
       class="send-btn"

@@ -8,7 +8,7 @@ const rl = readline.createInterface({
 
 let conversationHistory: any[] = [];
 
-console.log('🌼 Welcome to the Daisy Amenity Reservation System!');
+console.log('🤖 Welcome to the Amenity Booking Agent!');
 console.log('You can ask to book the pool or the BBQ grill.');
 console.log('Type "exit" or "quit" to leave.\n');
 
@@ -26,14 +26,14 @@ const promptUser = () => {
       return;
     }
 
-    process.stdout.write('\n🌼 Daisy is thinking...\n');
+    process.stdout.write('\n🤖 Assistant is thinking...\n');
     
     // We pass history to runAgent, which returns the updated text and new history array
     const { text, history } = await runAgent(trimmed, conversationHistory);
     
     conversationHistory = history;
 
-    console.log(`\n🌼 Daisy: \x1b[36m${text}\x1b[0m\n`); // Cyan color for assistant response
+    console.log(`\n🤖 Assistant: \x1b[36m${text}\x1b[0m\n`); // Cyan color for assistant response
     
     promptUser();
   });
