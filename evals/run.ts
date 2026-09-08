@@ -1,24 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-import { runAgent } from '../agent.js';
 import { cases } from './cases.js';
-
-export interface EvalCase {
-  id: string;
-  description: string;
-  turns: string[];
-  expect?: (db: any) => boolean;
-  expectTools?: (callsPerTurn: string[][]) => boolean;
-}
-
-interface CaseResult {
-  id: string;
-  description: string;
-  passed: boolean;
-  reason?: string;
-  toolsCalledPerTurn: string[][];
-}
+import {
+  BACKUP_PATH, EVALS_DIR, backupDb, restoreDb, runCase,
+  type CaseResult,
+} from './lib.js';
 
 interface Report {
   runAt: string;
@@ -28,49 +14,7 @@ interface Report {
   results: CaseResult[];
 }
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.resolve(__dirname, '..', 'database.json');
-const SEED_PATH = path.resolve(__dirname, 'seed.json');
-const BACKUP_PATH = path.resolve(__dirname, '..', 'database.eval-backup.json');
-const DEFAULT_OUT = path.resolve(__dirname, 'results.json');
-
-async function runCase(c: EvalCase): Promise<CaseResult> {
-  fs.copyFileSync(SEED_PATH, DB_PATH);
-
-  const callsPerTurn: string[][] = [];
-  let history: any[] = [];
-
-  try {
-    for (const turn of c.turns) {
-      const result = await runAgent(turn, history, `eval-${c.id}`);
-      history = result.history;
-      callsPerTurn.push(result.toolsCalled);
-    }
-  } catch (err) {
-    return {
-      id: c.id, description: c.description, passed: false,
-      reason: `Agent threw: ${err instanceof Error ? err.message : err}`,
-      toolsCalledPerTurn: callsPerTurn,
-    };
-  }
-
-  if (c.expect) {
-    const db = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-    if (!c.expect(db)) {
-      return { id: c.id, description: c.description, passed: false, reason: 'DB assertion failed', toolsCalledPerTurn: callsPerTurn };
-    }
-  }
-
-  if (c.expectTools && !c.expectTools(callsPerTurn)) {
-    return {
-      id: c.id, description: c.description, passed: false,
-      reason: `Tool assertion failed`,
-      toolsCalledPerTurn: callsPerTurn,
-    };
-  }
-
-  return { id: c.id, description: c.description, passed: true, toolsCalledPerTurn: callsPerTurn };
-}
+const DEFAULT_OUT = path.resolve(EVALS_DIR, 'results.json');
 
 async function main() {
   const args = process.argv.slice(2);
@@ -87,7 +31,7 @@ async function main() {
 
   console.log(`\n=== Booking Agent Evals — ${toRun.length} case(s) ===\n`);
 
-  fs.copyFileSync(DB_PATH, BACKUP_PATH);
+  backupDb();
   const results: CaseResult[] = [];
 
   try {
@@ -104,8 +48,7 @@ async function main() {
       }
     }
   } finally {
-    fs.copyFileSync(BACKUP_PATH, DB_PATH);
-    fs.unlinkSync(BACKUP_PATH);
+    restoreDb();
   }
 
   const passed = results.filter(r => r.passed).length;
@@ -127,9 +70,6 @@ async function main() {
 
 main().catch(err => {
   console.error(err);
-  if (fs.existsSync(BACKUP_PATH)) {
-    fs.copyFileSync(BACKUP_PATH, DB_PATH);
-    fs.unlinkSync(BACKUP_PATH);
-  }
+  if (fs.existsSync(BACKUP_PATH)) restoreDb();
   process.exit(1);
 });
