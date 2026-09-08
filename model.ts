@@ -11,7 +11,7 @@ const DEFAULT_MODELS: Record<ModelProvider, string | undefined> = {
   anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o-mini',
   google: 'gemini-2.0-flash',
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'qwen/qwen3.8-27b',
   ollama: 'llama3.1',
   lmstudio: undefined, // depends on which model you downloaded — MODEL_ID is required
 };
@@ -37,6 +37,22 @@ export function getModelSelection(env: NodeJS.ProcessEnv = process.env): ModelSe
     );
   }
   return { provider, modelId };
+}
+
+/**
+ * Read MAX_OUTPUT_TOKENS from the environment. Returns undefined when unset,
+ * which leaves the provider's default behavior unchanged. Some providers
+ * (e.g. Groq's free tier) reject requests whose implicit output-token budget
+ * exceeds the tier's per-minute cap, so this caps it explicitly.
+ */
+export function getMaxOutputTokens(env: NodeJS.ProcessEnv = process.env): number | undefined {
+  const raw = env.MAX_OUTPUT_TOKENS;
+  if (raw === undefined || raw.trim() === '') return undefined;
+  const value = Number.parseInt(raw, 10);
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`Invalid MAX_OUTPUT_TOKENS "${raw}" — expected a positive integer.`);
+  }
+  return value;
 }
 
 /** Create the chat model for a selection. No network calls happen here. */

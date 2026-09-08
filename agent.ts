@@ -2,7 +2,7 @@ import { generateText, stepCountIs, tool, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import dotenv from 'dotenv';
 import { agentLog } from './logger.js';
-import { getModel } from './model.js';
+import { getMaxOutputTokens, getModel } from './model.js';
 
 dotenv.config();
 
@@ -179,6 +179,7 @@ export async function runAgent(
       system: options.systemPrompt ?? buildSystemPrompt(today),
 
       messages,
+      maxOutputTokens: getMaxOutputTokens(),
       stopWhen: stepCountIs(10),
 
       onStepEnd: (step) => {
