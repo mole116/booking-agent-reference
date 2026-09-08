@@ -24,6 +24,11 @@ test('MODEL_ID overrides the provider default', () => {
   assert.deepEqual(selection, { provider: 'google', modelId: 'gemini-2.5-pro' });
 });
 
+test('groq defaults to llama-3.3-70b-versatile', () => {
+  const selection = getModelSelection({ MODEL_PROVIDER: 'groq' });
+  assert.deepEqual(selection, { provider: 'groq', modelId: 'llama-3.3-70b-versatile' });
+});
+
 test('lmstudio requires MODEL_ID — no default exists for a local server', () => {
   assert.throws(() => getModelSelection({ MODEL_PROVIDER: 'lmstudio' }), /MODEL_ID is required/);
 });

@@ -52,7 +52,7 @@ Three processes: the Angular client, the Express API (source of truth for all bo
 ## Prerequisites
 
 - Node.js 22+
-- An API key for your model provider — [Anthropic](https://console.anthropic.com/) by default, or OpenAI / Google / a local model (see [Switching models](#switching-models))
+- An API key for your model provider — [Anthropic](https://console.anthropic.com/) by default, or OpenAI / Google / Groq / a local model (see [Switching models](#switching-models))
 
 ## Setup
 
@@ -81,6 +81,7 @@ MODEL_ID=gpt-4o-mini   # optional; every hosted provider has a default
 | `anthropic` (default) | `ANTHROPIC_AI_API_KEY` | `claude-sonnet-4-6` | First run works with just this key. |
 | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | |
 | `google` | `GOOGLE_GENERATIVE_AI_API_KEY` | `gemini-2.0-flash` | |
+| `groq` | `GROQ_API_KEY` | `llama-3.3-70b-versatile` | Hosted, free tier ≈30 requests/min and ≈1K requests/day. Prefer the larger Llama/Qwen variants — their tool calling is the strongest on Groq. |
 | `ollama` | — | `llama3.1` | Local. Override `OLLAMA_BASE_URL` (default `http://localhost:11434/v1`). |
 | `lmstudio` | — | none — `MODEL_ID` required | Local. Override `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`). Set `MODEL_ID` to the model you loaded. |
 
@@ -149,6 +150,21 @@ Add one entry per configuration:
 - **Prompt variant** — set `prompt` to a function that receives the production prompt and returns a modified one.
 
 Every entry runs the full suite from `evals/cases.ts`. Each run records pass/fail per case, the DB-state and tool-call assertion outcomes, and the model + prompt variant used. The JSON report is written to `evals/compare-results.json`.
+
+### Smoke runs, timeouts, and metrics
+
+Run a subset for a cheap smoke pass instead of the full matrix:
+
+```bash
+npm run eval:matrix -- --config llama-local --case book-pool-simple
+```
+
+- `--config <name>` — run only these matrix entries (repeatable, or comma-separated).
+- `--case <id>` — run only these cases (repeatable, or comma-separated).
+- `--timeout <seconds>` — per-case timeout (default 300). A case that exceeds it is marked failed with a timeout reason and the run **continues** with the next case. A configuration that fails outright (missing API key, model server down) is recorded as an error and the matrix continues with the next configuration.
+- `--out <path>` — where to write the JSON report (default `evals/compare-results.json`).
+
+Every case records wall-clock time and token usage (prompt / completion / total), and every configuration gets a summary row — pass count, total time, total tokens — in both the console matrix and `compare-results.json`. Note: a timed-out case's agent may still finish in the background; its late result is discarded.
 
 ## Known limitations
 
