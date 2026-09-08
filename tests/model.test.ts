@@ -1,0 +1,37 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+process.env.NODE_ENV = 'test';
+
+const { getModelSelection, createModel, MODEL_PROVIDERS } = await import('../model.js');
+
+test('defaults to Anthropic claude-sonnet-4-6 when no env is set', () => {
+  const selection = getModelSelection({});
+  assert.deepEqual(selection, { provider: 'anthropic', modelId: 'claude-sonnet-4-6' });
+});
+
+test('provider name is case-insensitive', () => {
+  const selection = getModelSelection({ MODEL_PROVIDER: 'OpenAI' });
+  assert.equal(selection.provider, 'openai');
+});
+
+test('rejects an unknown provider with a helpful error', () => {
+  assert.throws(() => getModelSelection({ MODEL_PROVIDER: 'mistral' }), /Unknown MODEL_PROVIDER "mistral"/);
+});
+
+test('MODEL_ID overrides the provider default', () => {
+  const selection = getModelSelection({ MODEL_PROVIDER: 'google', MODEL_ID: 'gemini-2.5-pro' });
+  assert.deepEqual(selection, { provider: 'google', modelId: 'gemini-2.5-pro' });
+});
+
+test('lmstudio requires MODEL_ID — no default exists for a local server', () => {
+  assert.throws(() => getModelSelection({ MODEL_PROVIDER: 'lmstudio' }), /MODEL_ID is required/);
+});
+
+test('createModel builds a model for every provider without any network calls', () => {
+  for (const provider of MODEL_PROVIDERS) {
+    const model = createModel({ provider, modelId: 'test-model' });
+    assert.ok(model, `no model returned for ${provider}`);
+    assert.equal(typeof (model as { modelId?: unknown }).modelId, 'string');
+  }
+});

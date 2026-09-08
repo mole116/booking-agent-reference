@@ -1,6 +1,6 @@
 # AI Amenity Booking Agent
 
-An AI-powered amenity reservation system for a residential building. Residents chat with an AI agent (powered by Claude) to browse amenities, check availability, and manage bookings — all through a conversational interface.
+An AI-powered amenity reservation system for a residential building. Residents chat with an AI agent to browse amenities, check availability, and manage bookings — all through a conversational interface.
 
 ## Key decisions
 
@@ -16,7 +16,7 @@ An AI-powered amenity reservation system for a residential building. Residents c
 ┌────────────────────┐          ┌────────────────────┐          ┌────────────────────┐
 │   Angular client   │          │    Express API     │          │   Agent service    │
 │   (port 4200)      │───HTTP──►│    (port 3000)     │───HTTP──►│   (port 3001)      │
-│                    │          │                    │          │  Claude via the    │
+│                    │          │                    │          │  Any LLM via the   │
 │  chat + bookings + │◄──SSE────│  agent-health      │          │  Vercel AI SDK,    │
 │  availability UI   │  agent   │  polling (5s)      │          │  Zod tool schemas  │
 └────────────────────┘  status  └─────────┬──────────┘          └─────────┬──────────┘
@@ -45,14 +45,14 @@ Three processes: the Angular client, the Express API (source of truth for all bo
 ## Stack
 
 - **Backend** — Node.js 22, TypeScript, Express 5
-- **Agent** — Vercel AI SDK, Claude (`claude-sonnet-4-6`), runs as a separate microservice
+- **Agent** — Vercel AI SDK, model-agnostic (Anthropic Claude by default), runs as a separate microservice
 - **Frontend** — Angular 22 (standalone components, signals)
 - **Persistence** — JSON file (`database.json`)
 
 ## Prerequisites
 
 - Node.js 22+
-- An [Anthropic API key](https://console.anthropic.com/)
+- An API key for your model provider — [Anthropic](https://console.anthropic.com/) by default, or OpenAI / Google / a local model (see [Switching models](#switching-models))
 
 ## Setup
 
@@ -62,11 +62,29 @@ Three processes: the Angular client, the Express API (source of truth for all bo
    ```
 
 2. Create a `.env` file in the project root:
+   ```bash
+   cp .env.example .env
    ```
-   ANTHROPIC_AI_API_KEY=your_key_here
-   AGENT_PORT=3001        # optional, defaults to 3001
-   CORS_ORIGIN=http://localhost:4200  # optional, defaults to http://localhost:4200
-   ```
+   Then fill in your API key. `.env.example` documents every variable.
+
+## Switching models
+
+The agent is model-agnostic. Swapping the LLM is one env change — no code edits:
+
+```
+MODEL_PROVIDER=openai
+MODEL_ID=gpt-4o-mini   # optional; every hosted provider has a default
+```
+
+| `MODEL_PROVIDER` | API-key env var | `MODEL_ID` default | Notes |
+|---|---|---|---|
+| `anthropic` (default) | `ANTHROPIC_AI_API_KEY` | `claude-sonnet-4-6` | First run works with just this key. |
+| `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | |
+| `google` | `GOOGLE_GENERATIVE_AI_API_KEY` | `gemini-2.0-flash` | |
+| `ollama` | — | `llama3.1` | Local. Override `OLLAMA_BASE_URL` (default `http://localhost:11434/v1`). |
+| `lmstudio` | — | none — `MODEL_ID` required | Local. Override `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`). Set `MODEL_ID` to the model you loaded. |
+
+Tool-calling quality varies by model. The agent relies on structured tool calls for every action, and smaller local models may struggle with them — expect degraded behavior (missed tool calls, malformed arguments) on weaker models.
 
 ## Running
 
@@ -104,7 +122,7 @@ npm test
 
 ## Eval suite
 
-To run the agent eval suite (requires the Express server running on port 3000 and an Anthropic API key):
+To run the agent eval suite (requires the Express server running on port 3000 and a configured model — any provider works):
 
 ```bash
 npm run eval
