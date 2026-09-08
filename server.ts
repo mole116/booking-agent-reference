@@ -10,7 +10,7 @@ const AGENT_URL = `http://localhost:${process.env.AGENT_PORT ?? 3001}`;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
+export const app = express();
 app.use(express.json());
 app.use((_req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', process.env.CORS_ORIGIN ?? 'http://localhost:4200');
@@ -59,10 +59,12 @@ async function checkAgentHealth(): Promise<void> {
   }
 }
 
-// Poll every 5 seconds
-setInterval(checkAgentHealth, 5000);
-// Also check immediately on startup
-checkAgentHealth();
+if (process.env.NODE_ENV !== 'test') {
+  // Poll every 5 seconds
+  setInterval(checkAgentHealth, 5000);
+  // Also check immediately on startup
+  checkAgentHealth();
+}
 
 // GET /api/agent-status — SSE stream, pushes {alive} on every status change
 app.get('/api/agent-status', (req: Request, res: Response) => {
@@ -81,9 +83,14 @@ app.get('/api/agent-status', (req: Request, res: Response) => {
   });
 });
 
-const DB_PATH = path.join(__dirname, 'database.json');
+const DB_PATH = process.env.DB_PATH ?? path.join(__dirname, 'database.json');
 
 let dbCache: any = null;
+
+// Test hook: drop the in-memory cache after swapping the DB file.
+export const resetDbCache = (): void => {
+  dbCache = null;
+};
 
 const readDB = () => {
   if (!dbCache) dbCache = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
@@ -115,7 +122,7 @@ const parseMinutes = (time: string, context: string): number => {
   return h * 60 + m;
 };
 
-const expandSlots = (amenity: any): string[] => {
+export const expandSlots = (amenity: any): string[] => {
   const slots: string[] = [];
   for (const window of amenity.operatingWindows as { from: string; to: string }[]) {
     const context = `amenity "${amenity.id}" operatingWindows`;
@@ -139,7 +146,7 @@ const getRequestedSlots = (
   );
 };
 
-const getAvailabilityForDate = (db: any, amenity: any, date: string) => {
+export const getAvailabilityForDate = (db: any, amenity: any, date: string) => {
   const bookingsOnDate = db.bookings.filter(
     (booking: any) =>
       booking.amenityId === amenity.id && booking.date === date,
@@ -170,7 +177,7 @@ const getAvailabilityForDate = (db: any, amenity: any, date: string) => {
  * excludeBookingId is used when updating so the old version of the booking
  * does not count against its own new capacity calculation.
  */
-const validateReservation = ({
+export const validateReservation = ({
   db,
   amenity,
   date,
@@ -624,6 +631,8 @@ app.post('/api/chat', async (req: Request, res: Response) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
