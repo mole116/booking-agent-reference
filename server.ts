@@ -191,6 +191,19 @@ const validateReservation = ({
     return 'End time must be after start time.';
   }
 
+  // Reject bookings in the past server-side; do not rely on the agent prompt
+  // alone. date is YYYY-MM-DD, so a string compare against today's local date
+  // is sufficient.
+  const now = new Date();
+  const today = [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+  ].join('-');
+  if (date < today) {
+    return 'Cannot book a date in the past.';
+  }
+
   const requestedSlots = getRequestedSlots(amenity, startTime, endTime);
 
   if (requestedSlots.length === 0) {
@@ -282,6 +295,23 @@ app.get(
 
     if (Number.isNaN(currentDate.getTime()) || Number.isNaN(finalDate.getTime())) {
       return res.status(400).json({ error: 'Invalid date format.' });
+    }
+
+    if (currentDate > finalDate) {
+      return res
+        .status(400)
+        .json({ error: 'startDate must be on or before endDate.' });
+    }
+
+    // Cap the range so one request cannot expand into an unbounded loop.
+    const MAX_RANGE_DAYS = 31;
+    const rangeDays = Math.round(
+      (finalDate.getTime() - currentDate.getTime()) / 86_400_000,
+    );
+    if (rangeDays > MAX_RANGE_DAYS) {
+      return res
+        .status(400)
+        .json({ error: `Date range cannot exceed ${MAX_RANGE_DAYS} days.` });
     }
 
     while (currentDate <= finalDate) {

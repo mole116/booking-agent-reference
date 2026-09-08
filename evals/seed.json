@@ -23,8 +23,7 @@
       "id": "gym",
       "name": "Fitness Center",
       "capacity": 10,
-      "operatingWindows": [{ "from": "06:00", "to": "22:00" }],
-      "ageRestricted": true
+      "operatingWindows": [{ "from": "06:00", "to": "22:00" }]
     },
     {
       "id": "tennis-court",
