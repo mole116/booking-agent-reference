@@ -76,12 +76,14 @@ MODEL_PROVIDER=openai
 MODEL_ID=gpt-4o-mini   # optional; every hosted provider has a default
 ```
 
+`MAX_OUTPUT_TOKENS` optionally caps the output tokens per model call (unset = provider default). Set it when your provider rejects requests over a tier limit — for Groq's free tier, use `MAX_OUTPUT_TOKENS=800`.
+
 | `MODEL_PROVIDER` | API-key env var | `MODEL_ID` default | Notes |
 |---|---|---|---|
 | `anthropic` (default) | `ANTHROPIC_AI_API_KEY` | `claude-sonnet-4-6` | First run works with just this key. |
 | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | |
 | `google` | `GOOGLE_GENERATIVE_AI_API_KEY` | `gemini-2.0-flash` | |
-| `groq` | `GROQ_API_KEY` | `llama-3.3-70b-versatile` | Hosted, free tier ≈30 requests/min and ≈1K requests/day. Prefer the larger Llama/Qwen variants — their tool calling is the strongest on Groq. |
+| `groq` | `GROQ_API_KEY` | `qwen/qwen3.8-27b` | Hosted, free tier ≈30 requests/min and ≈1K requests/day. Prefer the larger Llama/Qwen variants — their tool calling is the strongest on Groq. Free-tier output is capped at 1000 tokens/min (OTPM) and requests that exceed it are rejected — set `MAX_OUTPUT_TOKENS=800` to stay under the cap. |
 | `ollama` | — | `llama3.1` | Local. Override `OLLAMA_BASE_URL` (default `http://localhost:11434/v1`). |
 | `lmstudio` | — | none — `MODEL_ID` required | Local. Override `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`). Set `MODEL_ID` to the model you loaded. |
 
