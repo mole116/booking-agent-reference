@@ -130,6 +130,26 @@ npm run eval
 
 Results are written to `evals/results.json`.
 
+### Comparing models and prompts
+
+`npm run eval:matrix` runs the same scenario suite across several configurations — different models and/or system-prompt variants — and prints a case × configuration matrix. Configurations live in `evals/compare.config.ts`:
+
+```ts
+export const matrix: MatrixEntry[] = [
+  { name: 'default' },        // the env-driven model + production prompt
+  { name: 'gpt-4o-mini', provider: 'openai', modelId: 'gpt-4o-mini' },
+  { name: 'llama-local', provider: 'ollama', modelId: 'llama3.1' },
+  { name: 'strict-dates', prompt: (p) => p + '\nNever guess a date the user did not state.' },
+];
+```
+
+Add one entry per configuration:
+
+- **Model variant** — set `provider` (and optionally `modelId`; omitting it uses the provider's default).
+- **Prompt variant** — set `prompt` to a function that receives the production prompt and returns a modified one.
+
+Every entry runs the full suite from `evals/cases.ts`. Each run records pass/fail per case, the DB-state and tool-call assertion outcomes, and the model + prompt variant used. The JSON report is written to `evals/compare-results.json`.
+
 ## Known limitations
 
 - **JSON file store.** `database.json` keeps the assignment simple, but it is a single-writer file with no transactions. The mutex makes it safe for one server process, not for horizontal scaling. A real deployment needs a transactional database.

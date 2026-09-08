@@ -12,7 +12,8 @@
     "start:cli": "tsx cli.ts",
     "test": "NODE_ENV=test tsx --test \"tests/*.test.ts\"",
     "eval": "tsx evals/run.ts",
-    "eval:case": "tsx evals/run.ts"
+    "eval:case": "tsx evals/run.ts",
+    "eval:matrix": "tsx evals/compare.ts"
   },
   "keywords": [],
   "author": "",

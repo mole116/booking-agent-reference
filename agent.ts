@@ -1,4 +1,4 @@
-import { generateText, stepCountIs, tool } from 'ai';
+import { generateText, stepCountIs, tool, type LanguageModel } from 'ai';
 import { z } from 'zod';
 import dotenv from 'dotenv';
 import { agentLog } from './logger.js';
@@ -31,38 +31,17 @@ export interface AgentResult {
   toolsCalled: string[];
 }
 
-export async function runAgent(
-  userMessage: string,
-  history: any[] = [],
-  sessionId = 'cli',
-): Promise<AgentResult> {
-  let uiBlock: UiBlock = { kind: 'none', actions: [] };
-  let bookingChanged = false;
-  const toolsCalled: string[] = [];
+export interface AgentOptions {
+  /** Override the model (default: the env-driven selection from model.ts). Used by the eval matrix. */
+  model?: LanguageModel;
+  /** Override the system prompt (default: buildSystemPrompt). Used by the eval matrix. */
+  systemPrompt?: string;
+}
 
-  const messages = [...history, { role: 'user' as const, content: userMessage }];
-  const today = new Date().toISOString().split('T')[0];
 
-  agentLog.turnStart(sessionId, userMessage);
-
-  // Wrap a tool's execute fn so every result is logged
-  function logged<T extends Record<string, any>>(
-    name: string,
-    execute: (args: T) => Promise<unknown>,
-  ): (args: T) => Promise<unknown> {
-    return async (args: T) => {
-      toolsCalled.push(name);
-      const result = await execute(args);
-      agentLog.toolResult(sessionId, name, result);
-      return result;
-    };
-  }
-
-  try {
-    const result = await generateText({
-      model: getModel(),
-
-      system: `You are a helpful and polite amenity reservation assistant.
+/** The production system prompt. `today` is the current date in YYYY-MM-DD. */
+export function buildSystemPrompt(today: string): string {
+  return `You are a helpful and polite amenity reservation assistant.
 
 CURRENT DATE: ${today}
 DEFAULT USER ID: ${DEFAULT_USER_ID}
@@ -153,7 +132,42 @@ SHARED STEPS (both paths merge here):
    - Presenting a confirmation summary → kind="confirmation"
    - Presenting selectable choices (amenities, time slots) → kind="choices", one action per option
    - Any informational response → kind="none", empty actions array
-5. After calling setUiActions, ALWAYS write your conversational reply. Never end a turn with only a tool call.`,
+5. After calling setUiActions, ALWAYS write your conversational reply. Never end a turn with only a tool call.`;
+}
+
+export async function runAgent(
+  userMessage: string,
+  history: any[] = [],
+  sessionId = 'cli',
+  options: AgentOptions = {},
+): Promise<AgentResult> {
+  let uiBlock: UiBlock = { kind: 'none', actions: [] };
+  let bookingChanged = false;
+  const toolsCalled: string[] = [];
+
+  const messages = [...history, { role: 'user' as const, content: userMessage }];
+  const today = new Date().toISOString().split('T')[0];
+
+  agentLog.turnStart(sessionId, userMessage);
+
+  // Wrap a tool's execute fn so every result is logged
+  function logged<T extends Record<string, any>>(
+    name: string,
+    execute: (args: T) => Promise<unknown>,
+  ): (args: T) => Promise<unknown> {
+    return async (args: T) => {
+      toolsCalled.push(name);
+      const result = await execute(args);
+      agentLog.toolResult(sessionId, name, result);
+      return result;
+    };
+  }
+
+  try {
+    const result = await generateText({
+      model: options.model ?? getModel(),
+
+      system: options.systemPrompt ?? buildSystemPrompt(today),
 
       messages,
       stopWhen: stepCountIs(10),
