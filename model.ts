@@ -11,7 +11,7 @@ const DEFAULT_MODELS: Record<ModelProvider, string | undefined> = {
   anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o-mini',
   google: 'gemini-2.0-flash',
-  groq: 'llama-3.3-70b-versatile',
+  groq: 'qwen/qwen3.6-27b',
   ollama: 'llama3.1',
   lmstudio: undefined, // depends on which model you downloaded — MODEL_ID is required
 };
