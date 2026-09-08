@@ -10,7 +10,7 @@
     "start:client": "cd client && bash -c 'source ~/.nvm/nvm.sh && nvm use 22.22.3 && ng serve'",
     "start": "concurrently --names SERVER,AGENT,CLIENT --prefix-colors green,yellow,cyan \"npm run start:server\" \"npm run start:agent\" \"npm run start:client\"",
     "start:cli": "tsx cli.ts",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "NODE_ENV=test tsx --test \"tests/*.test.ts\"",
     "eval": "tsx evals/run.ts",
     "eval:case": "tsx evals/run.ts"
   },
@@ -27,8 +27,10 @@
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^26.2.0",
+    "@types/supertest": "^7.2.1",
     "concurrently": "^9.0.0",
     "nodemon": "^3.1.14",
+    "supertest": "^7.2.2",
     "ts-node": "^10.9.2",
     "tsx": "^4.23.11",
     "typescript": "^7.0.2"
