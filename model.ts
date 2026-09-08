@@ -4,13 +4,14 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModel } from 'ai';
 
-export const MODEL_PROVIDERS = ['anthropic', 'openai', 'google', 'ollama', 'lmstudio'] as const;
+export const MODEL_PROVIDERS = ['anthropic', 'openai', 'google', 'groq', 'ollama', 'lmstudio'] as const;
 export type ModelProvider = (typeof MODEL_PROVIDERS)[number];
 
 const DEFAULT_MODELS: Record<ModelProvider, string | undefined> = {
   anthropic: 'claude-sonnet-4-6',
   openai: 'gpt-4o-mini',
   google: 'gemini-2.0-flash',
+  groq: 'llama-3.3-70b-versatile',
   ollama: 'llama3.1',
   lmstudio: undefined, // depends on which model you downloaded — MODEL_ID is required
 };
@@ -47,6 +48,12 @@ export function createModel({ provider, modelId }: ModelSelection): LanguageMode
       return createOpenAI({ apiKey: process.env.OPENAI_API_KEY || '' })(modelId);
     case 'google':
       return createGoogleGenerativeAI({ apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '' })(modelId);
+    case 'groq':
+      return createOpenAICompatible({
+        name: 'groq',
+        baseURL: 'https://api.groq.com/openai/v1',
+        apiKey: process.env.GROQ_API_KEY || '',
+      })(modelId);
     case 'ollama':
       return createOpenAICompatible({
         name: 'ollama',

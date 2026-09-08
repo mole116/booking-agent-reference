@@ -23,12 +23,20 @@ export interface UiBlock {
   actions: UiAction[];
 }
 
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
 export interface AgentResult {
   text: string;
   history: any[];
   ui: UiBlock;
   bookingChanged: boolean;
   toolsCalled: string[];
+  /** Tokens used across every step of the turn (total = input + output). */
+  usage: TokenUsage;
 }
 
 export interface AgentOptions {
@@ -144,6 +152,7 @@ export async function runAgent(
   let uiBlock: UiBlock = { kind: 'none', actions: [] };
   let bookingChanged = false;
   const toolsCalled: string[] = [];
+  const usage: TokenUsage = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
 
   const messages = [...history, { role: 'user' as const, content: userMessage }];
   const today = new Date().toISOString().split('T')[0];
@@ -173,6 +182,9 @@ export async function runAgent(
       stopWhen: stepCountIs(10),
 
       onStepEnd: (step) => {
+        usage.inputTokens += step.usage?.inputTokens ?? 0;
+        usage.outputTokens += step.usage?.outputTokens ?? 0;
+        usage.totalTokens = usage.inputTokens + usage.outputTokens;
         agentLog.step(sessionId, {
           stepNumber: step.stepNumber,
           text: step.text,
@@ -388,6 +400,7 @@ export async function runAgent(
       ui: uiBlock,
       bookingChanged,
       toolsCalled,
+      usage,
     };
   } catch (error) {
     agentLog.error(sessionId, error);
@@ -398,6 +411,7 @@ export async function runAgent(
       history: messages,
       ui: { kind: 'none', actions: [] },
       bookingChanged: false,
+      usage,
       toolsCalled,
     };
   }
