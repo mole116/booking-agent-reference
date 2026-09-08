@@ -1,4 +1,4 @@
-# Daisy Booking Agent
+# AI Amenity Booking Agent
 
 An AI-powered amenity reservation system for a residential building. Residents chat with an AI agent (powered by Claude) to browse amenities, check availability, and manage bookings — all through a conversational interface.
 

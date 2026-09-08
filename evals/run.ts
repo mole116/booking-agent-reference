@@ -85,7 +85,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`\n=== Daisy Evals — ${toRun.length} case(s) ===\n`);
+  console.log(`\n=== Booking Agent Evals — ${toRun.length} case(s) ===\n`);
 
   fs.copyFileSync(DB_PATH, BACKUP_PATH);
   const results: CaseResult[] = [];
