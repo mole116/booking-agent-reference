@@ -1,4 +1,4 @@
-import type { EvalCase } from './run.js';
+import type { EvalCase } from './lib.js';
 
 // Helper: flatten all turns into one list
 const allCalls = (turns: string[][]) => turns.flat();
