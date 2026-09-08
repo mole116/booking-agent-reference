@@ -1,14 +1,10 @@
 import { generateText, stepCountIs, tool } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
 import { z } from 'zod';
 import dotenv from 'dotenv';
 import { agentLog } from './logger.js';
+import { getModel } from './model.js';
 
 dotenv.config();
-
-const anthropic = createAnthropic({
-  apiKey: process.env.ANTHROPIC_AI_API_KEY || '',
-});
 
 const API_BASE_URL = 'http://localhost:3000/api';
 const DEFAULT_USER_ID = 'user-1';
@@ -64,7 +60,7 @@ export async function runAgent(
 
   try {
     const result = await generateText({
-      model: anthropic('claude-sonnet-4-6'),
+      model: getModel(),
 
       system: `You are a helpful and polite amenity reservation assistant.
 
