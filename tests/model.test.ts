@@ -29,6 +29,11 @@ test('groq defaults to qwen/qwen3.8-27b', () => {
   assert.deepEqual(selection, { provider: 'groq', modelId: 'qwen/qwen3.8-27b' });
 });
 
+test('bedrock defaults to Claude Haiku 4.5 via the US cross-region inference profile', () => {
+  const selection = getModelSelection({ MODEL_PROVIDER: 'bedrock' });
+  assert.deepEqual(selection, { provider: 'bedrock', modelId: 'us.anthropic.claude-haiku-4-5-20251001-v1:0' });
+});
+
 test('lmstudio requires MODEL_ID — no default exists for a local server', () => {
   assert.throws(() => getModelSelection({ MODEL_PROVIDER: 'lmstudio' }), /MODEL_ID is required/);
 });

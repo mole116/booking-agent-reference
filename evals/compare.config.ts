@@ -20,6 +20,12 @@ export interface MatrixEntry {
  *   { name: 'gpt-4o-mini',  provider: 'openai', modelId: 'gpt-4o-mini' },
  *   { name: 'llama-local',  provider: 'ollama', modelId: 'llama3.1' },
  *   { name: 'strict-dates', prompt: (p) => p + '\nNever guess a date the user did not state.' },
+ *
+ * Bedrock entries (billable — require AWS credentials and model access enabled
+ * in your Bedrock region, so they stay commented out by default):
+ *
+ *   { name: 'bedrock-haiku-4.5', provider: 'bedrock', modelId: 'us.anthropic.claude-haiku-4-5-20251001-v1:0' },
+ *   { name: 'bedrock-nova-lite', provider: 'bedrock', modelId: 'us.amazon.nova-lite-v1:0' },
  */
 export const matrix: MatrixEntry[] = [
   { name: 'default' },
