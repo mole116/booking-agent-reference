@@ -1,10 +1,11 @@
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOpenAICompatible } from '@ai-sdk/openai-compatible';
 import type { LanguageModel } from 'ai';
 
-export const MODEL_PROVIDERS = ['anthropic', 'openai', 'google', 'groq', 'ollama', 'lmstudio'] as const;
+export const MODEL_PROVIDERS = ['anthropic', 'openai', 'google', 'groq', 'bedrock', 'ollama', 'lmstudio'] as const;
 export type ModelProvider = (typeof MODEL_PROVIDERS)[number];
 
 const DEFAULT_MODELS: Record<ModelProvider, string | undefined> = {
@@ -12,6 +13,9 @@ const DEFAULT_MODELS: Record<ModelProvider, string | undefined> = {
   openai: 'gpt-4o-mini',
   google: 'gemini-2.0-flash',
   groq: 'qwen/qwen3.8-27b',
+  // Claude Haiku 4.5 via the US cross-region inference profile — the base ID
+  // (anthropic.claude-haiku-4-5-20251001-v1:0) is not available in-Region in US Regions.
+  bedrock: 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
   ollama: 'llama3.1',
   lmstudio: undefined, // depends on which model you downloaded — MODEL_ID is required
 };
@@ -70,6 +74,11 @@ export function createModel({ provider, modelId }: ModelSelection): LanguageMode
         baseURL: 'https://api.groq.com/openai/v1',
         apiKey: process.env.GROQ_API_KEY || '',
       })(modelId);
+    case 'bedrock':
+      // Auth resolves automatically: AWS_BEARER_TOKEN_BEDROCK (Bedrock API key) first,
+      // then SigV4 via AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY. Region comes from
+      // AWS_REGION (falls back to us-east-1 so the client always builds).
+      return createAmazonBedrock({ region: process.env.AWS_REGION ?? 'us-east-1' })(modelId);
     case 'ollama':
       return createOpenAICompatible({
         name: 'ollama',

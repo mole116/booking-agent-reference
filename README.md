@@ -52,7 +52,7 @@ Three processes: the Angular client, the Express API (source of truth for all bo
 ## Prerequisites
 
 - Node.js 22+
-- An API key for your model provider — [Anthropic](https://console.anthropic.com/) by default, or OpenAI / Google / Groq / a local model (see [Switching models](#switching-models))
+- An API key for your model provider — [Anthropic](https://console.anthropic.com/) by default, or OpenAI / Google / Groq / Amazon Bedrock / a local model (see [Switching models](#switching-models))
 
 ## Setup
 
@@ -84,6 +84,7 @@ MODEL_ID=gpt-4o-mini   # optional; every hosted provider has a default
 | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` | |
 | `google` | `GOOGLE_GENERATIVE_AI_API_KEY` | `gemini-2.0-flash` | |
 | `groq` | `GROQ_API_KEY` | `qwen/qwen3.8-27b` | Hosted, free tier ≈30 requests/min and ≈1K requests/day. Prefer the larger Llama/Qwen variants — their tool calling is the strongest on Groq. Free-tier output is capped at 1000 tokens/min (OTPM) and requests that exceed it are rejected — set `MAX_OUTPUT_TOKENS=800` to stay under the cap. |
+| `bedrock` | see notes | `us.anthropic.claude-haiku-4-5-20251001-v1:0` | Amazon Bedrock. Auth resolves automatically: `AWS_BEARER_TOKEN_BEDROCK` (Bedrock API key) first, then SigV4 via `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`; region from `AWS_REGION` (default `us-east-1`). Model access must be enabled in the Bedrock console, and the default model ID is a US cross-region inference profile — check availability in your region. Model IDs: [models at a glance](https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html). |
 | `ollama` | — | `llama3.1` | Local. Override `OLLAMA_BASE_URL` (default `http://localhost:11434/v1`). |
 | `lmstudio` | — | none — `MODEL_ID` required | Local. Override `LMSTUDIO_BASE_URL` (default `http://localhost:1234/v1`). Set `MODEL_ID` to the model you loaded. |
 
