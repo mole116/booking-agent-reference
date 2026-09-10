@@ -15,7 +15,7 @@
   height: 60px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .wordmark {
@@ -43,13 +43,6 @@
   letter-spacing: 0.01em;
 }
 
-.header-badge {
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(245, 240, 232, 0.45);
-}
 
 // ─── Dashboard layout ────────────────────────────────────────────────────────
 
