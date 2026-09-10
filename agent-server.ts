@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { runAgent } from './agent.js';
+import { API_BASE_URL, runAgent } from './agent.js';
 import { serverLog } from './logger.js';
 
 const app = express();
@@ -22,7 +22,17 @@ app.post('/agent', async (req: Request, res: Response) => {
   serverLog.request('POST', '/agent', { sessionId: sid, messagePreview: message.slice(0, 80) });
 
   try {
-    const result = await runAgent(message.trim(), hist, sid);
+    const result = await runAgent(message.trim(), hist, sid, {
+      // Report which tool is executing so the UI can show a live status label.
+      // Best-effort: a failed progress ping must never fail the turn.
+      onToolStart: (toolName) => {
+        void fetch(`${API_BASE_URL}/agent-activity`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId: sid, tool: toolName }),
+        }).catch(() => {});
+      },
+    });
     serverLog.response('POST', '/agent', 200, {
       sessionId: sid,
       bookingChanged: result.bookingChanged,

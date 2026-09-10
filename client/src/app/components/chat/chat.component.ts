@@ -54,6 +54,9 @@ export class ChatComponent implements OnInit {
 
   inputDisabled = computed(() => this.isLoading() || !this.agentAvailable());
 
+  /** Live loading label: reflects the tool the agent is currently executing. */
+  readonly loadingLabel = computed(() => this.chatService.statusLabel() ?? 'Thinking…');
+
   constructor() {
     // Incoming messages from any component (amenities Book button, bookings Edit/Cancel)
     this.chatInputService.message$.pipe(
