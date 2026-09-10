@@ -2,6 +2,10 @@
 
 An AI-powered amenity reservation system for a residential building. Residents chat with an AI agent to browse amenities, check availability, and manage bookings — all through a conversational interface.
 
+## Demo
+
+![Demo: a resident books the pool through chat, confirms, then cancels a booking](docs/demo.gif)
+
 ## Key decisions
 
 - **Deterministic capacity math, server-side.** All overlap and capacity arithmetic lives in the Express API, not in the model. The agent asks the server; the server decides.
@@ -180,3 +184,4 @@ Every case records wall-clock time and token usage (prompt / completion / total)
 ## License
 
 [MIT](LICENSE)
+
