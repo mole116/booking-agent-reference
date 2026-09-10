@@ -8,3 +8,6 @@ database.eval-backup.json
 client/node_modules/
 client/dist/
 evals/compare-results.json
+
+# Local runtime DB (bootstrapped from evals/seed.json when missing)
+database.json

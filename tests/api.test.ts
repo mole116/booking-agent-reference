@@ -8,7 +8,7 @@ process.env.NODE_ENV = 'test';
 const TEST_DB = path.join(os.tmpdir(), `daisy-api-test-${process.pid}.json`);
 process.env.DB_PATH = TEST_DB;
 
-const { app, resetDbCache } = await import('../server.js');
+const { app } = await import('../server.js');
 const { default: request } = await import('supertest');
 
 const SEED = path.resolve(import.meta.dirname, '..', 'evals', 'seed.json');
@@ -21,7 +21,6 @@ const yesterday = inDays(-1);
 
 beforeEach(() => {
   fs.copyFileSync(SEED, TEST_DB);
-  resetDbCache();
 });
 
 test('GET /api/amenities returns all amenities with the age-restriction policy applied', async () => {
