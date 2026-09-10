@@ -176,3 +176,54 @@ test('POST /api/chat validates its input and reports an unavailable agent', asyn
   const res = await request(app).post('/api/chat').send({ message: 'hi' });
   assert.equal(res.status, 503);
 });
+
+test('POST /api/agent-activity broadcasts the tool activity over the SSE channel', async () => {
+  const server = app.listen(0);
+  try {
+    const { port } = server.address() as { port: number };
+    const ctrl = new AbortController();
+    const sse = await fetch(`http://127.0.0.1:${port}/api/agent-status`, { signal: ctrl.signal });
+    const reader = sse.body!.getReader();
+    await reader.read(); // first chunk is the current { alive } state
+
+    const post = await fetch(`http://127.0.0.1:${port}/api/agent-activity`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sessionId: 'session-1',
+        label: 'Confirming your booking…',
+        tool: 'commitBooking',
+      }),
+    });
+    assert.equal(post.status, 204);
+
+    const chunk = await reader.read();
+    const text = new TextDecoder().decode(chunk.value);
+    const payload = JSON.parse(text.trim().replace(/^data: /, ''));
+    assert.deepEqual(payload, {
+      activity: { sessionId: 'session-1', label: 'Confirming your booking…', tool: 'commitBooking' },
+    });
+    ctrl.abort();
+  } finally {
+    server.close();
+  }
+});
+
+test('POST /api/agent-activity validates its inputs', async () => {
+  assert.equal((await request(app).post('/api/agent-activity').send({})).status, 400);
+  assert.equal((await request(app).post('/api/agent-activity').send({ sessionId: 's' })).status, 400);
+  assert.equal((await request(app).post('/api/agent-activity').send({ label: 'Working…' })).status, 400);
+  assert.equal(
+    (await request(app).post('/api/agent-activity').send({ sessionId: ' ', label: 'Working…' })).status,
+    400,
+  );
+  assert.equal(
+    (await request(app).post('/api/agent-activity').send({ sessionId: 's', label: ' ' })).status,
+    400,
+  );
+  // tool is optional metadata: sessionId + label alone is a valid event
+  assert.equal(
+    (await request(app).post('/api/agent-activity').send({ sessionId: 's', label: 'Working…' })).status,
+    204,
+  );
+});

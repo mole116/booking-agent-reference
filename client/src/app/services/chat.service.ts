@@ -1,17 +1,37 @@
-import { Injectable, inject, signal, OnDestroy } from '@angular/core';
+import { Injectable, inject, signal, computed, OnDestroy } from '@angular/core';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { ApiService } from './api.service';
 import { ChatResponse } from '../models/chat.model';
+
+/**
+ * Live activity event pushed over the status stream. The label is produced
+ * by the agent service, next to the tools themselves - the client stays
+ * agnostic and renders whatever label the event carries.
+ */
+interface AgentActivity {
+  sessionId: string;
+  label: string;
+  tool?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ChatService implements OnDestroy {
   private api = inject(ApiService);
 
-  private sessionId: string | null = null;
+  // Generated client-side so live activity events can be matched to this
+  // session from the very first message. The server accepts a provided id.
+  private sessionId: string = crypto.randomUUID();
   private readonly _agentAvailable = signal(true);
+  private readonly _activity = signal<AgentActivity | null>(null);
   private eventSource: EventSource | null = null;
 
   readonly agentAvailable = this._agentAvailable.asReadonly();
+
+  /** Loading label for the action currently executing in this session, if any. */
+  readonly statusLabel = computed(() => {
+    const activity = this._activity();
+    return activity && activity.sessionId === this.sessionId ? activity.label : null;
+  });
 
   constructor() {
     this.connectStatusStream();
@@ -22,16 +42,15 @@ export class ChatService implements OnDestroy {
   }
 
   send(message: string): Observable<ChatResponse> {
-    return this.api.sendChat(message, this.sessionId ?? undefined).pipe(
-      tap((res) => {
-        this.sessionId = res.sessionId;
-      }),
+    this._activity.set(null); // new turn: fall back to the generic label until the first tool starts
+    return this.api.sendChat(message, this.sessionId).pipe(
       catchError((err: unknown) => throwError(() => err)),
     );
   }
 
   resetSession(): void {
-    this.sessionId = null;
+    this.sessionId = crypto.randomUUID();
+    this._activity.set(null);
   }
 
   private connectStatusStream(): void {
@@ -40,8 +59,16 @@ export class ChatService implements OnDestroy {
 
     this.eventSource.onmessage = (event) => {
       try {
-        const { alive } = JSON.parse(event.data) as { alive: boolean };
-        this._agentAvailable.set(alive);
+        const data = JSON.parse(event.data) as { alive?: boolean; activity?: AgentActivity };
+        if (typeof data.alive === 'boolean') {
+          this._agentAvailable.set(data.alive);
+        } else if (
+          data.activity &&
+          typeof data.activity.label === 'string' &&
+          data.activity.label.trim()
+        ) {
+          this._activity.set(data.activity);
+        }
       } catch { /* malformed event — ignore */ }
     };
 

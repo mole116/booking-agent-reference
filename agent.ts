@@ -6,7 +6,7 @@ import { getMaxOutputTokens, getModel } from './model.js';
 
 dotenv.config();
 
-const API_BASE_URL = 'http://localhost:3000/api';
+export const API_BASE_URL = 'http://localhost:3000/api';
 const DEFAULT_USER_ID = 'user-1';
 
 export type ActionVariant = 'primary' | 'secondary' | 'danger';
@@ -44,6 +44,8 @@ export interface AgentOptions {
   model?: LanguageModel;
   /** Override the system prompt (default: buildSystemPrompt). Used by the eval matrix. */
   systemPrompt?: string;
+  /** Called whenever a tool starts executing. Used by the agent service to report live progress. */
+  onToolStart?: (toolName: string) => void;
 }
 
 
@@ -166,6 +168,7 @@ export async function runAgent(
   ): (args: T) => Promise<unknown> {
     return async (args: T) => {
       toolsCalled.push(name);
+      options.onToolStart?.(name);
       const result = await execute(args);
       agentLog.toolResult(sessionId, name, result);
       return result;

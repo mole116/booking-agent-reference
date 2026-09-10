@@ -36,11 +36,15 @@ type SseClient = Response;
 let agentAlive = false;
 const sseClients = new Set<SseClient>();
 
-function broadcastAgentStatus(alive: boolean): void {
-  const data = `data: ${JSON.stringify({ alive })}\n\n`;
+function broadcast(payload: unknown): void {
+  const data = `data: ${JSON.stringify(payload)}\n\n`;
   for (const client of sseClients) {
     client.write(data);
   }
+}
+
+function broadcastAgentStatus(alive: boolean): void {
+  broadcast({ alive });
 }
 
 async function checkAgentHealth(): Promise<void> {
@@ -563,6 +567,31 @@ app.delete('/api/bookings/:id', async (req: Request, res: Response) => {
       cancelledBooking: booking,
     });
   });
+});
+
+// POST /api/agent-activity — the agent service pings here whenever one of its
+// tools starts executing, carrying the ready-to-display status label. The event
+// is pushed to every SSE client so the UI can show it verbatim ("Confirming your
+// booking…") instead of a static label; the client needs no knowledge of tools.
+app.post('/api/agent-activity', (req: Request, res: Response) => {
+  const { sessionId, label, tool } = req.body as {
+    sessionId?: unknown;
+    label?: unknown;
+    tool?: unknown;
+  };
+  if (
+    typeof sessionId !== 'string' || !sessionId.trim() ||
+    typeof label !== 'string' || !label.trim()
+  ) {
+    return res.status(400).json({ error: 'sessionId and label are required.' });
+  }
+  const activity: { sessionId: string; label: string; tool?: string } = {
+    sessionId,
+    label,
+  };
+  if (typeof tool === 'string' && tool.trim()) activity.tool = tool;
+  broadcast({ activity });
+  return res.status(204).end();
 });
 
 // POST /api/chat — proxies to the agent service; keeps history server-side
