@@ -84,17 +84,19 @@ app.get('/api/agent-status', (req: Request, res: Response) => {
 });
 
 const DB_PATH = process.env.DB_PATH ?? path.join(__dirname, 'database.json');
+const SEED_PATH = path.join(__dirname, 'evals', 'seed.json');
 
-let dbCache: any = null;
-
-// Test hook: drop the in-memory cache after swapping the DB file.
-export const resetDbCache = (): void => {
-  dbCache = null;
-};
-
+// No in-memory cache: the DB file is read on every request, so an external
+// reseed (the eval harness overwrites database.json before every case) is
+// visible to a running server without a restart. The mutex below serialises
+// all read-validate-write sections, so per-request reads stay consistent.
 const readDB = () => {
-  if (!dbCache) dbCache = JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
-  return dbCache;
+  if (!fs.existsSync(DB_PATH)) {
+    // Fresh clone or deleted DB: bootstrap from the seed when available.
+    if (fs.existsSync(SEED_PATH)) fs.copyFileSync(SEED_PATH, DB_PATH);
+    else return { amenities: [], bookings: [] };
+  }
+  return JSON.parse(fs.readFileSync(DB_PATH, 'utf-8'));
 };
 
 // Promise-queue mutex — serialises all read-validate-write sections so
@@ -107,7 +109,6 @@ const withLock = <T>(fn: () => Promise<T>): Promise<T> => {
 };
 
 const writeDB = async (data: any): Promise<void> => {
-  dbCache = data; // update cache synchronously before yielding
   await fs.promises.writeFile(DB_PATH, JSON.stringify(data, null, 2));
 };
 
