@@ -4,24 +4,14 @@ import { ApiService } from './api.service';
 import { ChatResponse } from '../models/chat.model';
 
 /**
- * Maps each user-visible agent tool to the loading label shown while it runs.
- * Tools absent from this map (setUiActions — an internal, near-instant UI-state
- * call) never change the label, so the last meaningful status stays on screen.
+ * Live activity event pushed over the status stream. The label is produced
+ * by the agent service, next to the tools themselves - the client stays
+ * agnostic and renders whatever label the event carries.
  */
-const TOOL_STATUS_LABELS: Record<string, string> = {
-  getAmenities: 'Getting amenity details…',
-  getUserBookings: 'Looking up your bookings…',
-  checkAvailability: 'Checking availability…',
-  checkAvailabilityRange: 'Checking availability…',
-  checkBookingUpdateAvailability: 'Checking availability…',
-  commitBooking: 'Confirming your booking…',
-  updateBooking: 'Updating your booking…',
-  cancelBooking: 'Cancelling your booking…',
-};
-
 interface AgentActivity {
   sessionId: string;
-  tool: string;
+  label: string;
+  tool?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -37,12 +27,10 @@ export class ChatService implements OnDestroy {
 
   readonly agentAvailable = this._agentAvailable.asReadonly();
 
-  /** Loading label for the tool currently executing in this session, if any. */
+  /** Loading label for the action currently executing in this session, if any. */
   readonly statusLabel = computed(() => {
     const activity = this._activity();
-    return activity && activity.sessionId === this.sessionId
-      ? TOOL_STATUS_LABELS[activity.tool]
-      : null;
+    return activity && activity.sessionId === this.sessionId ? activity.label : null;
   });
 
   constructor() {
@@ -74,7 +62,11 @@ export class ChatService implements OnDestroy {
         const data = JSON.parse(event.data) as { alive?: boolean; activity?: AgentActivity };
         if (typeof data.alive === 'boolean') {
           this._agentAvailable.set(data.alive);
-        } else if (data.activity && data.activity.tool in TOOL_STATUS_LABELS) {
+        } else if (
+          data.activity &&
+          typeof data.activity.label === 'string' &&
+          data.activity.label.trim()
+        ) {
           this._activity.set(data.activity);
         }
       } catch { /* malformed event — ignore */ }

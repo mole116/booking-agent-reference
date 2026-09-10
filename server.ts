@@ -570,17 +570,27 @@ app.delete('/api/bookings/:id', async (req: Request, res: Response) => {
 });
 
 // POST /api/agent-activity — the agent service pings here whenever one of its
-// tools starts executing; the event is pushed to every SSE client so the UI can
-// show a live status label ("Confirming your booking…") instead of a static one.
+// tools starts executing, carrying the ready-to-display status label. The event
+// is pushed to every SSE client so the UI can show it verbatim ("Confirming your
+// booking…") instead of a static label; the client needs no knowledge of tools.
 app.post('/api/agent-activity', (req: Request, res: Response) => {
-  const { sessionId, tool } = req.body as { sessionId?: unknown; tool?: unknown };
+  const { sessionId, label, tool } = req.body as {
+    sessionId?: unknown;
+    label?: unknown;
+    tool?: unknown;
+  };
   if (
     typeof sessionId !== 'string' || !sessionId.trim() ||
-    typeof tool !== 'string' || !tool.trim()
+    typeof label !== 'string' || !label.trim()
   ) {
-    return res.status(400).json({ error: 'sessionId and tool are required.' });
+    return res.status(400).json({ error: 'sessionId and label are required.' });
   }
-  broadcast({ activity: { sessionId, tool } });
+  const activity: { sessionId: string; label: string; tool?: string } = {
+    sessionId,
+    label,
+  };
+  if (typeof tool === 'string' && tool.trim()) activity.tool = tool;
+  broadcast({ activity });
   return res.status(204).end();
 });
 

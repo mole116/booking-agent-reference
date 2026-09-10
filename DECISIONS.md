@@ -10,7 +10,7 @@
 - **Persistence:** JSON file (`database.json`) — intentionally simple for this assignment
 - **Current interface:** CLI and Angular UI
 - **Agent health monitoring:** Server-Sent Events — the Express server polls the agent every 5 seconds and pushes `{ alive: boolean }` to all connected clients; the Angular UI enables/disables the chat input accordingly
-- **Live activity status:** the chat's loading label reflects what the agent is actually doing ("Confirming your booking…" instead of a static "Checking availability…"). The agent service reports every tool start to the Express server (`POST /api/agent-activity`), which broadcasts it over the same SSE channel; the UI maps the running tool to a human label. Internal-only tools (`setUiActions`) are deliberately not mapped, so the last meaningful status stays on screen
+- **Live activity status:** the chat's loading label reflects what the agent is actually doing ("Confirming your booking…" instead of a static "Checking availability…"). The agent service reports every tool start to the Express server (`POST /api/agent-activity`), which broadcasts it over the same SSE channel; the agent service owns the label per tool and the client renders whatever label arrives, staying agnostic to the tool list. Internal-only tools (`setUiActions`) send no ping, so the last meaningful status stays on screen
 
 I chose the Vercel AI SDK because it provides a straightforward tool-calling loop while letting me define and own the tools, prompts, and backend behavior. Using the Vercel AI SDK does not require deploying the project to Vercel.
 
